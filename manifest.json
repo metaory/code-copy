@@ -1,0 +1,23 @@
+{
+  "name": "Code Copy",
+  "short_name": "codecopy",
+  "description": "Click code blocks to copy. Hold Ctrl and click any element to copy its text.",
+  "version": "0.0.1",
+  "manifest_version": 3,
+  "author": {
+    "email": "metaory@gmail.com"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "exclude_matches": [
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "http://0.0.0.0/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

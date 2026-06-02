@@ -1,6 +1,12 @@
-# CodeCopy
-
-CodeCopy is a Chrome extension that copies `innerText` from page elements to the clipboard. No popup, no options page — just click.
+<div align="center">
+  <img src="icons/icon128.png" width="96" height="96" alt="Live CSS Queries logo">
+  <h1>CodeCopy</h1>
+  <p>CodeCopy is a Chrome extension</p>
+  <p>that <strong>copies `innerText`</strong> from page elements to the clipboard</p>
+  <p>No popup, no options page - just click</p>
+</div>
+  
+---
 
 ## Modes
 

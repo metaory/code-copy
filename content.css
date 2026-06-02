@@ -1,13 +1,14 @@
 :root {
-	--codecopy-accent: #6655ff;
-	--codecopy-text: #8855dd;
-	--codecopy-bg: rgba(17, 0, 34, 0.06);
+	--cc-accent: #6655ff;
+	--cc-text: #8855dd;
+	--cc-surface: rgba(17, 0, 34, 0.06);
+	--cc-ink: #110022;
 }
 
 code, pre { cursor: copy; }
 
 .codecopy-x {
-	outline: 3px solid var(--codecopy-accent);
+	outline: 3px solid var(--cc-accent);
 	outline-offset: 2px;
 }
 
@@ -17,21 +18,21 @@ code, pre { cursor: copy; }
 	translate: -50% -50%;
 	padding: 20px 36px;
 	border-radius: 12px;
-	background: var(--codecopy-bg);
-	-webkit-backdrop-filter: blur(8px);
-	backdrop-filter: blur(8px);
-	outline: 8px solid var(--codecopy-accent);
-	box-shadow:
-		0 0 24px color-mix(in srgb, var(--codecopy-accent) 90%, transparent),
-		0 0 64px color-mix(in srgb, var(--codecopy-accent) 55%, transparent),
-		0 22px 70px color-mix(in srgb, #110022 85%, transparent);
-	color: var(--codecopy-text);
+	background: var(--cc-surface);
+	color: var(--cc-text);
 	font: 600 28px/1 system-ui, sans-serif;
 	letter-spacing: 0.3px;
 	z-index: 2147483647;
 	opacity: 0;
 	pointer-events: none;
+	outline: 8px solid var(--cc-accent);
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
+	box-shadow:
+		0 0 24px color-mix(in srgb, var(--cc-accent) 90%, transparent),
+		0 0 64px color-mix(in srgb, var(--cc-accent) 55%, transparent),
+		0 22px 70px color-mix(in srgb, var(--cc-ink) 85%, transparent);
 	transition: opacity 0.18s ease;
-}
 
-#codecopy-toast.show { opacity: 1; }
+	&.show { opacity: 1; }
+}

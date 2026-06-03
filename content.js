@@ -1,8 +1,9 @@
 const ID = 'codecopy-toast';
 const FONT = 'Vintaface-Regular';
 const FONT_SRC = chrome.runtime.getURL('assets/Vintaface-Regular.woff2');
-const FONT_FACE = `'${FONT}',system-ui,sans-serif`;
 const SKIP = new Set(['HTML', 'BODY']);
+const TOAST_MS = 300;
+const TOAST = { copied: 'Copied', failed: 'Copy failed' };
 const state = { ctrl: false, mark: null };
 
 const injectFace = (url) => {
@@ -14,61 +15,58 @@ const injectFace = (url) => {
 };
 
 const fontReady = fetch(FONT_SRC)
-	.then((r) => r.blob())
+	.then((r) => (r.ok ? r.blob() : Promise.reject(new Error(`font ${r.status}`))))
 	.then((blob) => {
 		const url = URL.createObjectURL(blob);
 		injectFace(url);
-		return new FontFace(FONT, `url("${url}")`, { weight: '400', style: 'normal', display: 'swap' }).load();
+		return document.fonts.load(`32px '${FONT}'`);
 	})
-	.then((f) => document.fonts.add(f))
-	.catch(() => {});
+	.catch(console.error);
 
-const mount = (t) => {
-	if (!t.el) t.el = Object.assign(document.createElement('div'), {
-		id: ID,
-		ariaLive: 'polite',
-		style: `font:400 32px/1 ${FONT_FACE}`,
-	});
-	if (!t.el.isConnected) document.body.append(t.el);
-	return t.el;
-};
-
-const toast = new Proxy({ el: null, timer: 0 }, {
-	get(t, k) {
-		if (k !== 'show') return t[k];
-		return (msg) => {
-			Promise.resolve(fontReady).finally(() => {
-				const el = mount(t);
-				Object.assign(el, { textContent: msg });
-				el.classList.add('show');
-				clearTimeout(t.timer);
-				t.timer = setTimeout(() => el.classList.remove('show'), 300);
-			});
-		};
+const toast = {
+	el: null,
+	timer: 0,
+	show(msg) {
+		Promise.resolve(fontReady).finally(() => {
+			if (!this.el) this.el = Object.assign(document.createElement('div'), { id: ID, ariaLive: 'polite' });
+			if (!this.el.isConnected) document.body.append(this.el);
+			this.el.textContent = msg;
+			this.el.classList.add('show');
+			clearTimeout(this.timer);
+			this.timer = setTimeout(() => this.el.classList.remove('show'), TOAST_MS);
+		});
 	},
-});
+};
 
 const own = (el) => el?.closest?.(`#${ID}`);
-const free = (n) => !own(n);
+const hasText = (el) => Boolean(el?.innerText?.trim());
 
-const when = (t, ok, find = (n) => n) => {
-	const n = t instanceof Element ? t : null;
-	if (!n || !ok(n)) return null;
-	return find(n) || null;
+const when = (node, ok, find = (n) => n) => {
+	const n = node instanceof Element ? node : null;
+	return n && ok(n) ? find(n) || null : null;
 };
 
-const pick = (x, y) => when(document.elementFromPoint(x, y), (n) => free(n) && !SKIP.has(n.tagName) && n.innerText);
-const code = (t) => when(t, free, (n) => n.closest('code') || n.closest('pre'));
-const target = (e) => state.ctrl ? pick(e.clientX, e.clientY) : code(e.target);
+const pickable = (n) => !own(n) && !SKIP.has(n.tagName) && hasText(n);
 
-const show_success = () => toast.show('Copied');
-const show_failure = () => toast.show('Copy failed');
-
-const copy = (el) => {
-	if (!el?.innerText) return false;
-	navigator.clipboard.writeText(el.innerText).then(show_success).catch(show_failure);
-	return true;
+const codeBlock = (n) => {
+	const c = n.closest('code');
+	if (c) return hasText(c) ? c : null;
+	const p = n.closest('pre');
+	if (!p || p.querySelector('code')) return null;
+	return hasText(p) ? p : null;
 };
+
+const pick = (x, y) => when(document.elementFromPoint(x, y), pickable);
+const code = (t) => when(t, (n) => !own(n), codeBlock);
+const hit = (e) => (state.ctrl ? pick(e.clientX, e.clientY) : code(e.target));
+
+const notify = (msg, ok) => { toast.show(msg); return ok; };
+
+const copy = (el) => (hasText(el)
+	? navigator.clipboard.writeText(el.innerText)
+		.then(() => notify(TOAST.copied, true))
+		.catch(() => notify(TOAST.failed, false))
+	: Promise.resolve(false));
 
 const mark = (el) => {
 	if (state.mark === el) return;
@@ -77,9 +75,10 @@ const mark = (el) => {
 	el?.classList.add('codecopy-x');
 };
 
-const ctrlOff = () => {
-	state.ctrl = false;
-	mark(null);
+const setCtrl = (on) => {
+	state.ctrl = on;
+	document.documentElement.classList.toggle('codecopy-ctrl', on);
+	if (!on) mark(null);
 };
 
 const swallow = (e) => {
@@ -89,18 +88,21 @@ const swallow = (e) => {
 
 const onKey = (e, down) => {
 	if (e.key !== 'Control') return;
-	state.ctrl = down;
-	if (!down) mark(null);
+	setCtrl(down);
 };
 
-[
+const onClick = (e) => {
+	const el = hit(e);
+	if (!el || e.defaultPrevented) return;
+	copy(el).then((ok) => ok && swallow(e));
+};
+
+const listeners = [
 	['keydown', (e) => onKey(e, true)],
 	['keyup', (e) => onKey(e, false)],
-	['blur', ctrlOff],
-	['mousemove', (e) => state.ctrl && mark(pick(e.clientX, e.clientY))],
-	['click', (e) => {
-		const el = target(e);
-		if (!el || e.defaultPrevented || !copy(el)) return;
-		swallow(e);
-	}, { capture: true }],
-].map(([name, fn, opts]) => window.addEventListener(name, fn, opts));
+	['blur', () => setCtrl(false)],
+	['mousemove', (e) => state.ctrl && mark(hit(e))],
+	['click', onClick, { capture: true }],
+];
+
+for (const [name, fn, opts] of listeners) window.addEventListener(name, fn, opts);

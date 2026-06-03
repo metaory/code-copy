@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="icons/icon128.png" width="96" height="96" alt="Live CSS Queries logo">
+  <img src="icons/icon128.png" width="96" height="96" alt="CodeCopy logo">
   <h1>CodeCopy</h1>
   <p>CodeCopy is a Chrome extension</p>
   <p>that <strong>copies `innerText`</strong> from page elements to the clipboard</p>
@@ -8,41 +8,27 @@
   
 ---
 
-## Modes
+**Code blocks** — Click `<code>` or a standalone `<pre>` to copy.
 
-### Code Block Copy
+**Any element** — Hold **Ctrl** to highlight elements with text, then **Ctrl + click** to copy.
 
-Click any `<code>` element, or a bare `<pre>` without a nested `<code>`.
-
-For `<pre><code>…</code></pre>`, the inner `<code>` is copied.
-
-Empty blocks are ignored.
-
-### Element Copy
-
-Hold **Ctrl** and move the mouse — elements with visible text get an outline.
-
-**Ctrl + click** copies that element's `innerText`. Release Ctrl to exit pick mode.
-
-## Feedback
-
-A centered toast confirms **Copied** or **Copy failed**. That is the only UI.
+**Feedback** — Short toast: **Copied** or **Copy failed**.
 
 ## Install
 
-1. Open `chrome://extensions`
-2. Enable **Developer mode**
-3. Click **Load unpacked**
-4. Select this directory
+**Work in progress** — listing not live yet; link and ID below are placeholders.
 
-Reload the extension after code changes.
+<div align="center">
+  <a href="https://chrome.google.com/webstore/detail/codecopy/abcdefghijklmnopqrstuvwxyzabcdef">
+    <img src="https://storage.googleapis.com/chrome-gcs-uploader-uploads-developer-tools-chrome-extensions/ChromeWebStore_BadgeWBorder_v2_206x58.png" width="206" height="58" alt="Available in the Chrome Web Store">
+  </a>
+</div>
 
-## Notes
+### Development
 
-- Runs on all URLs except `localhost` and loopback (see `exclude_matches` in the manifest).
-- Clipboard access requires a user click; nothing is sent off-page.
-- Enable or disable the extension from Chrome's extension toolbar.
-
+1. `chrome://extensions` → **Developer mode** → **Load unpacked** → this directory  
+2. Reload the extension after changes
 
 ## License
+
 [MIT](LICENSE)

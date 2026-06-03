@@ -2,7 +2,7 @@ const ID = 'codecopy-toast';
 const FONT = 'Vintaface-Regular';
 const FONT_SRC = chrome.runtime.getURL('assets/Vintaface-Regular.woff2');
 const SKIP = new Set(['HTML', 'BODY']);
-const TOAST_MS = 300;
+const TOAST_MS = 600;
 const TOAST = { copied: 'Copied', failed: 'Copy failed' };
 const state = { ctrl: false, mark: null };
 
@@ -38,6 +38,17 @@ const toast = {
 	},
 };
 
+const shine = {
+	timer: 0,
+	go(el) {
+		el.classList.remove('codecopy-shine');
+		void el.offsetWidth;
+		el.classList.add('codecopy-shine');
+		clearTimeout(this.timer);
+		this.timer = setTimeout(() => el.classList.remove('codecopy-shine'), 200);
+	},
+};
+
 const own = (el) => el?.closest?.(`#${ID}`);
 const hasText = (el) => Boolean(el?.innerText?.trim());
 
@@ -60,11 +71,11 @@ const pick = (x, y) => when(document.elementFromPoint(x, y), pickable);
 const code = (t) => when(t, (n) => !own(n), codeBlock);
 const hit = (e) => (state.ctrl ? pick(e.clientX, e.clientY) : code(e.target));
 
-const notify = (msg, ok) => { toast.show(msg); return ok; };
+const notify = (msg, ok, el) => (toast.show(msg), ok && !state.ctrl && el && shine.go(el), ok);
 
 const copy = (el) => (hasText(el)
 	? navigator.clipboard.writeText(el.innerText)
-		.then(() => notify(TOAST.copied, true))
+		.then(() => notify(TOAST.copied, true, el))
 		.catch(() => notify(TOAST.failed, false))
 	: Promise.resolve(false));
 

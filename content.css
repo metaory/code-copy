@@ -3,6 +3,7 @@
 	--cc-accent: #6655ff;
 	--cc-text: #8855dd;
 	--cc-surface: rgb(20 0 40 / 60%);
+	--cc-shine: 200ms;
 }
 
 code, pre { cursor: copy; }
@@ -14,6 +15,20 @@ html.codecopy-ctrl { cursor: copy; }
 	outline-offset: 2px;
 	border-radius: 4px;
 }
+
+@keyframes codecopy-shine {
+	from {
+		box-shadow:
+			0 0 0 2px var(--cc-accent),
+			0 0 10px 3px hsl(260deg 70% 60% / 55%),
+			0 0 22px 8px hsl(260deg 70% 60% / 35%),
+			0 0 40px 14px hsl(260deg 70% 60% / 18%);
+	}
+	to { box-shadow: 0 0 0 0 transparent; }
+}
+
+code.codecopy-shine,
+pre.codecopy-shine { animation: codecopy-shine var(--cc-shine) ease-out; border-radius: 4px; }
 
 #codecopy-toast {
 	position: fixed;

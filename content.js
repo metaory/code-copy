@@ -1,9 +1,34 @@
 const ID = 'codecopy-toast';
+const FONT = 'Vintaface-Regular';
+const FONT_SRC = chrome.runtime.getURL('assets/Vintaface-Regular.woff2');
+const FONT_FACE = `'${FONT}',system-ui,sans-serif`;
 const SKIP = new Set(['HTML', 'BODY']);
 const state = { ctrl: false, mark: null };
 
+const injectFace = (url) => {
+	const id = 'codecopy-font';
+	if (document.getElementById(id)) return;
+	const tag = Object.assign(document.createElement('style'), { id });
+	tag.textContent = `@font-face{font-family:'${FONT}';src:url("${url}") format("woff2");font-weight:400;font-style:normal;font-display:swap}`;
+	document.documentElement.append(tag);
+};
+
+const fontReady = fetch(FONT_SRC)
+	.then((r) => r.blob())
+	.then((blob) => {
+		const url = URL.createObjectURL(blob);
+		injectFace(url);
+		return new FontFace(FONT, `url("${url}")`, { weight: '400', style: 'normal', display: 'swap' }).load();
+	})
+	.then((f) => document.fonts.add(f))
+	.catch(() => {});
+
 const mount = (t) => {
-	if (!t.el) t.el = Object.assign(document.createElement('div'), { id: ID, ariaLive: 'polite' });
+	if (!t.el) t.el = Object.assign(document.createElement('div'), {
+		id: ID,
+		ariaLive: 'polite',
+		style: `font:400 32px/1 ${FONT_FACE}`,
+	});
 	if (!t.el.isConnected) document.body.append(t.el);
 	return t.el;
 };
@@ -12,11 +37,13 @@ const toast = new Proxy({ el: null, timer: 0 }, {
 	get(t, k) {
 		if (k !== 'show') return t[k];
 		return (msg) => {
-			const el = mount(t);
-			Object.assign(el, { textContent: msg });
-			el.classList.add('show');
-			clearTimeout(t.timer);
-			t.timer = setTimeout(() => el.classList.remove('show'), 1_200);
+			Promise.resolve(fontReady).finally(() => {
+				const el = mount(t);
+				Object.assign(el, { textContent: msg });
+				el.classList.add('show');
+				clearTimeout(t.timer);
+				t.timer = setTimeout(() => el.classList.remove('show'), 300);
+			});
 		};
 	},
 });

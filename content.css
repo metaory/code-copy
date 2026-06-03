@@ -1,7 +1,8 @@
 :root {
+	--cc-font: 'Vintaface-Regular', system-ui, sans-serif;
 	--cc-accent: #6655ff;
 	--cc-text: #8855dd;
-	--cc-surface: rgba(17, 0, 34, 0.06);
+	--cc-surface: rgb(17 0 34 / 60%);
 	--cc-ink: #110022;
 }
 
@@ -16,22 +17,18 @@ code, pre { cursor: copy; }
 	position: fixed;
 	inset: 50% auto auto 50%;
 	translate: -50% -50%;
-	padding: 20px 36px;
-	border-radius: 12px;
+	padding: 32px 46px;
+	border-radius: 38px;
 	background: var(--cc-surface);
 	color: var(--cc-text);
-	font: 600 28px/1 system-ui, sans-serif;
+	font: 400 32px/1 var(--cc-font);
 	letter-spacing: 0.3px;
 	z-index: 2147483647;
 	opacity: 0;
 	pointer-events: none;
-	outline: 8px solid var(--cc-accent);
-	-webkit-backdrop-filter: blur(8px);
-	backdrop-filter: blur(8px);
-	box-shadow:
-		0 0 24px color-mix(in srgb, var(--cc-accent) 90%, transparent),
-		0 0 64px color-mix(in srgb, var(--cc-accent) 55%, transparent),
-		0 22px 70px color-mix(in srgb, var(--cc-ink) 85%, transparent);
+	outline: 10px solid hsl(260deg 70% 60% / 10%);
+	-webkit-backdrop-filter: blur(4px);
+	backdrop-filter: blur(4px);
 	transition: opacity 0.18s ease;
 
 	&.show { opacity: 1; }

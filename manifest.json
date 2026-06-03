@@ -2,7 +2,7 @@
   "name": "Code Copy",
   "short_name": "codecopy",
   "description": "Click code blocks to copy. Hold Ctrl and click any element to copy its text.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "manifest_version": 3,
   "icons": {
     "16": "icons/icon16.png",
@@ -13,6 +13,12 @@
   "author": {
     "email": "metaory@gmail.com"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/Vintaface-Regular.woff2"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

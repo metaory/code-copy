@@ -3,6 +3,7 @@ const FONT = 'Vintaface-Regular';
 const FONT_SRC = chrome.runtime.getURL('assets/Vintaface-Regular.woff2');
 const SKIP = new Set(['HTML', 'BODY']);
 const TOAST_MS = 600;
+const SHINE_MS = 200;
 const TOAST = { copied: 'Copied', failed: 'Copy failed' };
 const state = { alt: false, mark: null, on: false };
 
@@ -43,7 +44,7 @@ const showToast = (msg) => {
 	});
 };
 
-const endShine = pulse(200);
+const endShine = pulse(SHINE_MS);
 const shine = (el) => {
 	el.classList.remove('codecopy-shine');
 	void el.offsetWidth;
@@ -63,10 +64,9 @@ const pickable = (n) => !own(n) && !SKIP.has(n.tagName) && hasText(n);
 
 const codeBlock = (n) => {
 	const c = n.closest('code');
-	if (c) return hasText(c) ? c : null;
+	if (c && hasText(c)) return c;
 	const p = n.closest('pre');
-	if (!p || p.querySelector('code')) return null;
-	return hasText(p) ? p : null;
+	return p && !p.querySelector('code') && hasText(p) ? p : null;
 };
 
 const pick = (x, y) => when(document.elementFromPoint(x, y), pickable);
@@ -126,14 +126,12 @@ const listeners = [
 const setOn = (on) => {
 	if (state.on === on) return;
 	state.on = on;
-	for (const [name, fn, opts] of listeners) {
-		const op = on ? 'addEventListener' : 'removeEventListener';
-		window[op](name, fn, opts);
-	}
+	const op = on ? 'addEventListener' : 'removeEventListener';
+	listeners.map(([name, fn, opts]) => window[op](name, fn, opts));
 	if (!on) setAlt(false);
 };
 
-const sync = (on) => setOn(Boolean(on));
+const applyActive = (v) => setOn(Boolean(v));
 
 const api = (fn) => {
 	try { fn(); }
@@ -141,8 +139,8 @@ const api = (fn) => {
 };
 
 const ACTIVE = { active: true };
-const fromStore = (data) => (data && 'active' in data ? Boolean(data.active) : true);
-const boot = () => api(() => chrome.storage.session.get(ACTIVE, (data) => sync(fromStore(data))));
+const readActive = (data) => (data && 'active' in data ? Boolean(data.active) : true);
+const boot = () => api(() => chrome.storage.session.get(ACTIVE, (data) => applyActive(readActive(data))));
 
 globalThis.__codecopy = { boot };
 
@@ -153,11 +151,8 @@ else {
 		boot();
 		chrome.storage.onChanged.addListener((c, a) => {
 			if (a !== 'session' || !('active' in (c ?? {}))) return;
-			sync(Boolean(c.active.newValue));
+			applyActive(c.active.newValue);
 		});
-		chrome.runtime.onMessage.addListener((msg) => {
-			if (msg?.type !== 'active') return;
-			sync(Boolean(msg.value));
-		});
+		chrome.runtime.onMessage.addListener((m) => m?.type === 'active' && applyActive(m.value));
 	});
 }

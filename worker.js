@@ -6,7 +6,7 @@ const SIZES = [16, 32, 48, 128];
 const iconCache = { on: null, off: null };
 
 const readActive = (data) => (data && 'active' in data ? Boolean(data.active) : true);
-const msg = (on) => ({ type: 'active', value: on });
+const msg = (on, toast = false) => ({ type: 'active', value: on, toast });
 
 const raster = async (size, gray) => {
 	const url = chrome.runtime.getURL(`icons/icon${size}.png`);
@@ -38,8 +38,8 @@ const sync = async (on) => {
 
 const http = (url) => (url?.startsWith('http://') || url?.startsWith('https://')) && !LOCAL.test(url ?? '');
 
-const applyTab = async (tabId, on) => {
-	const m = msg(on);
+const applyTab = async (tabId, on, toast = false) => {
+	const m = msg(on, toast);
 	try {
 		await chrome.tabs.sendMessage(tabId, m);
 		return;
@@ -50,7 +50,8 @@ const applyTab = async (tabId, on) => {
 
 const tabs = () => chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] }).then((xs) => xs.filter((t) => http(t.url)));
 
-const push = (on) => tabs().then((all) => Promise.all(all.map((tab) => tab.id && applyTab(tab.id, on))));
+const push = (on, toastTabId = null) =>
+	tabs().then((all) => Promise.all(all.map((tab) => tab.id && applyTab(tab.id, on, tab.id === toastTabId))));
 
 const refresh = async () => sync(readActive(await chrome.storage.session.get(ACTIVE)));
 
@@ -67,7 +68,8 @@ chrome.action.onClicked.addListener(async () => {
 	const on = !readActive(await chrome.storage.session.get(ACTIVE));
 	await chrome.storage.session.set({ active: on });
 	await sync(on);
-	await push(on);
+	const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+	await push(on, tab?.id ?? null);
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {

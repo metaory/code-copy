@@ -2,9 +2,20 @@ const ID = 'codecopy-toast';
 const FONT = 'Vintaface-Regular';
 const FONT_SRC = chrome.runtime.getURL('assets/Vintaface-Regular.woff2');
 const SKIP = new Set(['HTML', 'BODY']);
-const TOAST_MS = 600;
 const SHINE_MS = 200;
-const TOAST = { copied: 'Copied', failed: 'Copy failed' };
+const TOAST = {
+	copied: { body: 'Copied', ms: 600 },
+	failed: { body: 'Copy failed', ms: 600 },
+	off: { body: 'Code Copy Deactivated', ms: 2_000 },
+	on: {
+		title: 'Code Copy Activated',
+		tips: [
+			'Single left mouse click on code elements to copy',
+			'Hold Alt and left mouse click on any element to copy',
+		],
+		ms: 4_000,
+	},
+};
 const state = { alt: false, mark: null, on: false };
 
 const pulse = (ms) => {
@@ -33,14 +44,28 @@ const fontReady = fetch(FONT_SRC)
 	.catch(console.error);
 
 let toastEl = null;
-const hideToast = pulse(TOAST_MS);
-const showToast = (msg) => {
+let hideT = 0;
+
+const renderToast = (root, spec) => {
+	root.replaceChildren();
+	if (spec.body) {
+		root.textContent = spec.body;
+		return;
+	}
+	const title = Object.assign(document.createElement('div'), { className: 'codecopy-toast-title', textContent: spec.title });
+	const tips = Object.assign(document.createElement('div'), { className: 'codecopy-toast-tips' });
+	spec.tips.map((line) => tips.append(Object.assign(document.createElement('div'), { textContent: `• ${line}` })));
+	root.append(title, tips);
+};
+
+const showToast = (spec) => {
 	Promise.resolve(fontReady).finally(() => {
 		if (!toastEl) toastEl = Object.assign(document.createElement('div'), { id: ID, ariaLive: 'polite' });
 		if (!toastEl.isConnected) document.body.append(toastEl);
-		toastEl.textContent = msg;
+		renderToast(toastEl, spec);
 		toastEl.classList.add('show');
-		hideToast(() => toastEl.classList.remove('show'));
+		clearTimeout(hideT);
+		hideT = setTimeout(() => toastEl.classList.remove('show'), spec.ms ?? 600);
 	});
 };
 
@@ -153,6 +178,10 @@ else {
 			if (a !== 'session' || !('active' in (c ?? {}))) return;
 			applyActive(c.active.newValue);
 		});
-		chrome.runtime.onMessage.addListener((m) => m?.type === 'active' && applyActive(m.value));
+		chrome.runtime.onMessage.addListener((m) => {
+			if (m?.type !== 'active') return;
+			applyActive(m.value);
+			if (m.toast) showToast(TOAST[m.value ? 'on' : 'off']);
+		});
 	});
 }

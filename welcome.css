@@ -6,8 +6,17 @@
 	font-display: swap;
 }
 
+@font-face {
+	font-family: 'Baloo 2';
+	src: url(assets/baloo-2-latin-600-normal.woff2) format('woff2');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
 :root {
 	--font: Vintaface-Regular, system-ui, sans-serif;
+	--font-body: 'Baloo 2', system-ui, sans-serif;
 	--accent: #6655ff;
 	--text: #c8b8f0;
 	--muted: #9a88c8;
@@ -23,6 +32,11 @@ body {
 	background: radial-gradient(ellipse 120% 80% at 50% 0%, #2a1050, #0a0218 70%);
 	color: var(--text);
 	font: 400 1.125rem/1.5 var(--font);
+}
+
+p, li {
+	font-family: var(--font-body);
+	font-weight: 600;
 }
 
 main {
@@ -49,12 +63,12 @@ h1 {
 
 .lead { font-size: 1.35rem; color: #e0d4ff; }
 
-.lead kbd {
-	padding: 0.15em 0.45em;
-	border-radius: 0.35em;
-	background: var(--surface);
-	outline: 2px solid hsl(260deg 70% 60% / 25%);
+kbd {
 	font: inherit;
+  background: #421f79;
+  padding: 0px 6px;
+  outline: solid 2px #281753;
+  border-radius: 4px;
 }
 
 .card {

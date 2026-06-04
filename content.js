@@ -6,6 +6,14 @@ const TOAST_MS = 600;
 const TOAST = { copied: 'Copied', failed: 'Copy failed' };
 const state = { alt: false, mark: null, on: false };
 
+const pulse = (ms) => {
+	let t = 0;
+	return (fn) => {
+		clearTimeout(t);
+		t = setTimeout(fn, ms);
+	};
+};
+
 const injectFace = (url) => {
 	const id = 'codecopy-font';
 	if (document.getElementById(id)) return;
@@ -23,30 +31,24 @@ const fontReady = fetch(FONT_SRC)
 	})
 	.catch(console.error);
 
-const toast = {
-	el: null,
-	timer: 0,
-	show(msg) {
-		Promise.resolve(fontReady).finally(() => {
-			if (!this.el) this.el = Object.assign(document.createElement('div'), { id: ID, ariaLive: 'polite' });
-			if (!this.el.isConnected) document.body.append(this.el);
-			this.el.textContent = msg;
-			this.el.classList.add('show');
-			clearTimeout(this.timer);
-			this.timer = setTimeout(() => this.el.classList.remove('show'), TOAST_MS);
-		});
-	},
+let toastEl = null;
+const hideToast = pulse(TOAST_MS);
+const showToast = (msg) => {
+	Promise.resolve(fontReady).finally(() => {
+		if (!toastEl) toastEl = Object.assign(document.createElement('div'), { id: ID, ariaLive: 'polite' });
+		if (!toastEl.isConnected) document.body.append(toastEl);
+		toastEl.textContent = msg;
+		toastEl.classList.add('show');
+		hideToast(() => toastEl.classList.remove('show'));
+	});
 };
 
-const shine = {
-	timer: 0,
-	go(el) {
-		el.classList.remove('codecopy-shine');
-		void el.offsetWidth;
-		el.classList.add('codecopy-shine');
-		clearTimeout(this.timer);
-		this.timer = setTimeout(() => el.classList.remove('codecopy-shine'), 200);
-	},
+const endShine = pulse(200);
+const shine = (el) => {
+	el.classList.remove('codecopy-shine');
+	void el.offsetWidth;
+	el.classList.add('codecopy-shine');
+	endShine(() => el.classList.remove('codecopy-shine'));
 };
 
 const own = (el) => el?.closest?.(`#${ID}`);
@@ -72,7 +74,11 @@ const code = (t) => when(t, (n) => !own(n), codeBlock);
 const mod = (e) => state.alt || e.altKey;
 const hit = (e) => (mod(e) ? pick(e.clientX, e.clientY) : code(e.target));
 
-const notify = (msg, ok, el) => (toast.show(msg), ok && !state.alt && el && shine.go(el), ok);
+const notify = (msg, ok, el) => {
+	showToast(msg);
+	if (ok && !state.alt && el) shine(el);
+	return ok;
+};
 
 const copy = (el) => (hasText(el)
 	? navigator.clipboard.writeText(el.innerText)
@@ -120,7 +126,10 @@ const listeners = [
 const setOn = (on) => {
 	if (state.on === on) return;
 	state.on = on;
-	listeners.forEach(([name, fn, opts]) => (on ? window.addEventListener(name, fn, opts) : window.removeEventListener(name, fn, opts)));
+	for (const [name, fn, opts] of listeners) {
+		const op = on ? 'addEventListener' : 'removeEventListener';
+		window[op](name, fn, opts);
+	}
 	if (!on) setAlt(false);
 };
 
@@ -131,20 +140,24 @@ const api = (fn) => {
 	catch (e) { if (!/invalidated/i.test(String(e))) console.error(e); }
 };
 
-const boot = () => api(() => chrome.storage.session.get('active', ({ active = true }) => sync(active)));
+const ACTIVE = { active: true };
+const fromStore = (data) => (data && 'active' in data ? Boolean(data.active) : true);
+const boot = () => api(() => chrome.storage.session.get(ACTIVE, (data) => sync(fromStore(data))));
 
-globalThis.__codecopy = { setOn, boot };
+globalThis.__codecopy = { boot };
 
 if (globalThis.__codecopyReady) globalThis.__codecopy.boot();
 else {
 	globalThis.__codecopyReady = true;
-	boot();
-	api(() => chrome.storage.onChanged.addListener((c, a) => {
-		if (a !== 'session' || !c.active) return;
-		sync(c.active.newValue);
-	}));
-	api(() => chrome.runtime.onMessage.addListener((msg) => {
-		if (msg?.type !== 'active') return;
-		sync(msg.value);
-	}));
+	api(() => {
+		boot();
+		chrome.storage.onChanged.addListener((c, a) => {
+			if (a !== 'session' || !('active' in (c ?? {}))) return;
+			sync(Boolean(c.active.newValue));
+		});
+		chrome.runtime.onMessage.addListener((msg) => {
+			if (msg?.type !== 'active') return;
+			sync(Boolean(msg.value));
+		});
+	});
 }

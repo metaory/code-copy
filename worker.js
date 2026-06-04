@@ -58,7 +58,9 @@ const refresh = async () => sync(readActive(await chrome.storage.session.get(ACT
 chrome.action.setBadgeText({ text: '' });
 
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
-	if (reason === 'install') await chrome.storage.session.set({ active: true });
+	if (reason !== 'install') return refresh();
+	await chrome.storage.session.set({ active: true });
+	await chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
 	await refresh();
 });
 

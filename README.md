@@ -52,7 +52,10 @@ Copies visible text as **innerText** (layout-aware), not HTML source or `textCon
 ### Development
 
 1. Open `chrome://extensions` → enable **Developer mode** → **Load unpacked** → this directory.
-2. After code changes, use **Reload** on the extension card (content scripts refresh on the next navigation or tab reload).
+2. On first load, a **welcome** tab opens with a short usage guide (`welcome.html`).
+3. After code changes, use **Reload** on the extension card (content scripts refresh on the next navigation or tab reload).
+
+To open the welcome page again: remove the extension and load unpacked, or run `chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') })` from the service worker console on `chrome://extensions`.
 
 To exercise the extension on a machine-local app, either use a non-localhost URL or temporarily remove the `exclude_matches` entries in `manifest.json`.
 

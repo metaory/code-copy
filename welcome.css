@@ -1,0 +1,84 @@
+@font-face {
+	font-family: Vintaface-Regular;
+	src: url(assets/Vintaface-Regular.woff2) format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	--font: Vintaface-Regular, system-ui, sans-serif;
+	--accent: #6655ff;
+	--text: #c8b8f0;
+	--muted: #9a88c8;
+	--surface: rgb(20 0 40 / 72%);
+	--max: 40rem;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+body {
+	min-height: 100dvh;
+	padding: clamp(1.5rem, 5vw, 3rem);
+	background: radial-gradient(ellipse 120% 80% at 50% 0%, #2a1050, #0a0218 70%);
+	color: var(--text);
+	font: 400 1.125rem/1.5 var(--font);
+}
+
+main {
+	max-width: var(--max);
+	margin: 0 auto;
+	display: grid;
+	gap: 1.25rem;
+}
+
+.hero {
+	text-align: center;
+	display: grid;
+	gap: 0.75rem;
+	justify-items: center;
+}
+
+.hero img { border-radius: 1.25rem; }
+
+h1 {
+	font-size: clamp(2rem, 6vw, 2.75rem);
+	line-height: 1.1;
+	color: #e8dcff;
+}
+
+.lead { font-size: 1.35rem; color: #e0d4ff; }
+
+.lead kbd {
+	padding: 0.15em 0.45em;
+	border-radius: 0.35em;
+	background: var(--surface);
+	outline: 2px solid hsl(260deg 70% 60% / 25%);
+	font: inherit;
+}
+
+.card {
+	padding: 1.1rem 1.2rem;
+	border-radius: 1.2rem;
+	background: var(--surface);
+	outline: 3px solid hsl(260deg 70% 60% / 18%);
+	-webkit-backdrop-filter: blur(6px);
+	backdrop-filter: blur(6px);
+  box-shadow: 0 0 30px #241155;
+}
+
+.card h2 {
+	font-size: 1.2rem;
+	color: var(--accent);
+	margin-bottom: 0.5rem;
+}
+
+.card ul { padding-left: 1.2rem; display: grid; gap: 0.35rem; }
+
+.card li::marker { color: var(--accent); }
+
+.foot {
+	text-align: center;
+	color: var(--muted);
+	font-size: 0.95rem;
+}

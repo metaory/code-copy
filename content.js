@@ -4,7 +4,7 @@ const FONT_SRC = chrome.runtime.getURL('assets/Vintaface-Regular.woff2');
 const SKIP = new Set(['HTML', 'BODY']);
 const TOAST_MS = 600;
 const TOAST = { copied: 'Copied', failed: 'Copy failed' };
-const state = { ctrl: false, mark: null };
+const state = { alt: false, mark: null, on: false };
 
 const injectFace = (url) => {
 	const id = 'codecopy-font';
@@ -69,9 +69,10 @@ const codeBlock = (n) => {
 
 const pick = (x, y) => when(document.elementFromPoint(x, y), pickable);
 const code = (t) => when(t, (n) => !own(n), codeBlock);
-const hit = (e) => (state.ctrl ? pick(e.clientX, e.clientY) : code(e.target));
+const mod = (e) => state.alt || e.altKey;
+const hit = (e) => (mod(e) ? pick(e.clientX, e.clientY) : code(e.target));
 
-const notify = (msg, ok, el) => (toast.show(msg), ok && !state.ctrl && el && shine.go(el), ok);
+const notify = (msg, ok, el) => (toast.show(msg), ok && !state.alt && el && shine.go(el), ok);
 
 const copy = (el) => (hasText(el)
 	? navigator.clipboard.writeText(el.innerText)
@@ -86,9 +87,9 @@ const mark = (el) => {
 	el?.classList.add('codecopy-x');
 };
 
-const setCtrl = (on) => {
-	state.ctrl = on;
-	document.documentElement.classList.toggle('codecopy-ctrl', on);
+const setAlt = (on) => {
+	state.alt = on;
+	document.documentElement.classList.toggle('codecopy-alt', on);
 	if (!on) mark(null);
 };
 
@@ -98,8 +99,8 @@ const swallow = (e) => {
 };
 
 const onKey = (e, down) => {
-	if (e.key !== 'Control') return;
-	setCtrl(down);
+	if (e.key !== 'Alt') return;
+	setAlt(down);
 };
 
 const onClick = (e) => {
@@ -111,9 +112,39 @@ const onClick = (e) => {
 const listeners = [
 	['keydown', (e) => onKey(e, true)],
 	['keyup', (e) => onKey(e, false)],
-	['blur', () => setCtrl(false)],
-	['mousemove', (e) => state.ctrl && mark(hit(e))],
+	['blur', () => setAlt(false)],
+	['mousemove', (e) => mod(e) && mark(hit(e))],
 	['click', onClick, { capture: true }],
 ];
 
-for (const [name, fn, opts] of listeners) window.addEventListener(name, fn, opts);
+const setOn = (on) => {
+	if (state.on === on) return;
+	state.on = on;
+	listeners.forEach(([name, fn, opts]) => (on ? window.addEventListener(name, fn, opts) : window.removeEventListener(name, fn, opts)));
+	if (!on) setAlt(false);
+};
+
+const sync = (on) => setOn(Boolean(on));
+
+const api = (fn) => {
+	try { fn(); }
+	catch (e) { if (!/invalidated/i.test(String(e))) console.error(e); }
+};
+
+const boot = () => api(() => chrome.storage.session.get('active', ({ active = true }) => sync(active)));
+
+globalThis.__codecopy = { setOn, boot };
+
+if (globalThis.__codecopyReady) globalThis.__codecopy.boot();
+else {
+	globalThis.__codecopyReady = true;
+	boot();
+	api(() => chrome.storage.onChanged.addListener((c, a) => {
+		if (a !== 'session' || !c.active) return;
+		sync(c.active.newValue);
+	}));
+	api(() => chrome.runtime.onMessage.addListener((msg) => {
+		if (msg?.type !== 'active') return;
+		sync(msg.value);
+	}));
+}

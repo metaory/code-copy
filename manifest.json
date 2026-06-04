@@ -1,9 +1,21 @@
 {
   "name": "Code Copy",
   "short_name": "codecopy",
-  "description": "Click code blocks to copy. Hold Ctrl and click any element to copy its text.",
-  "version": "0.5.0",
+  "description": "Click code blocks to copy. Hold Alt and click any element to copy its text.",
+  "version": "0.6.0",
   "manifest_version": 3,
+  "permissions": ["storage", "scripting", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "worker.js" },
+  "action": {
+    "default_title": "Code Copy (active — click to deactivate)",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",

@@ -3,14 +3,16 @@
   <h1>CodeCopy</h1>
   <p>CodeCopy is a Chrome extension</p>
   <p>that <strong>copies `innerText`</strong> from page elements to the clipboard</p>
-  <p>No popup, no options page - just click</p>
+  <p>No popup, no options page — click the toolbar icon to disable globally</p>
 </div>
   
 ---
 
+**Activate** — Active by default (badge **●**). Click the **toolbar icon** to disable globally for the browser session; click again to re-enable. New tabs follow the current session state.
+
 **Code blocks** — Click `<code>` or a standalone `<pre>` to copy.
 
-**Any element** — Hold **Ctrl** to highlight elements with text, then **Ctrl + click** to copy.
+**Any element** — Hold **Alt** to highlight elements with text, then **Alt + click** to copy.
 
 **Feedback** — Short toast: **Copied** or **Copy failed**.
 

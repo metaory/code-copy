@@ -13,8 +13,8 @@ Chrome extension (Manifest V3) that copies **innerText** to the clipboard. Activ
 
 ### Toolbar
 
-- **On** — badge **●**, tooltip *Code Copy (active — click to deactivate)*.
-- **Off** — no badge; click the icon to turn copying back on.
+- **On** — full-color icon; tooltip *Code Copy (active — click to deactivate)*.
+- **Off** — grayscale icon; click to turn copying back on.
 - State is stored for the **browser session** (`chrome.storage.session`): it resets when you quit the browser. New tabs pick up the current on/off state.
 
 ### Code blocks

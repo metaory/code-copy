@@ -1,5 +1,5 @@
-const OFF = 'Code Copy — click to activate';
-const ON = 'Code Copy (active — click to deactivate)';
+const OFF = 'click to activate';
+const ON = 'click to deactivate';
 const ACTIVE = { active: true };
 const LOCAL = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?(\/|$)/;
 const SIZES = [16, 32, 48, 128];

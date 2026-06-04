@@ -7,7 +7,7 @@
 }
 
 @font-face {
-	font-family: 'Baloo 2';
+	font-family: baloo;
 	src: url(assets/baloo-2-latin-600-normal.woff2) format('woff2');
 	font-weight: 600;
 	font-style: normal;
@@ -16,7 +16,7 @@
 
 :root {
 	--font: Vintaface-Regular, system-ui, sans-serif;
-	--font-body: 'Baloo 2', system-ui, sans-serif;
+	--font-body: baloo, system-ui, sans-serif;
 	--accent: #6655ff;
 	--text: #c8b8f0;
 	--muted: #9a88c8;
@@ -32,11 +32,19 @@ body {
 	background: radial-gradient(ellipse 120% 80% at 50% 0%, #2a1050, #0a0218 70%);
 	color: var(--text);
 	font: 400 1.125rem/1.5 var(--font);
-}
 
-p, li {
-	font-family: var(--font-body);
-	font-weight: 600;
+	p, li {
+		font-family: var(--font-body);
+		font-weight: 600;
+	}
+
+	kbd {
+		font: inherit;
+		background: #421f79;
+		padding: 0 6px;
+		outline: solid 2px #281753;
+		border-radius: 4px;
+	}
 }
 
 main {
@@ -44,55 +52,47 @@ main {
 	margin: 0 auto;
 	display: grid;
 	gap: 1.25rem;
-}
 
-.hero {
-	text-align: center;
-	display: grid;
-	gap: 0.75rem;
-	justify-items: center;
-}
+	.hero {
+		text-align: center;
+		display: grid;
+		gap: 0.75rem;
+		justify-items: center;
 
-.hero img { border-radius: 1.25rem; }
+		img { border-radius: 1.25rem; }
 
-h1 {
-	font-size: clamp(2rem, 6vw, 2.75rem);
-	line-height: 1.1;
-	color: #e8dcff;
-}
+		h1 {
+			font-size: clamp(2rem, 6vw, 2.75rem);
+			line-height: 1.1;
+			color: #e8dcff;
+		}
 
-.lead { font-size: 1.35rem; color: #e0d4ff; }
+		.lead { font-size: 1.35rem; color: #e0d4ff; }
+	}
 
-kbd {
-	font: inherit;
-  background: #421f79;
-  padding: 0px 6px;
-  outline: solid 2px #281753;
-  border-radius: 4px;
-}
+	.card {
+		padding: 1.1rem 1.2rem;
+		border-radius: 1.2rem;
+		background: var(--surface);
+		outline: 3px solid hsl(260deg 70% 60% / 18%);
+		-webkit-backdrop-filter: blur(6px);
+		backdrop-filter: blur(6px);
+		box-shadow: 0 0 30px #241155;
 
-.card {
-	padding: 1.1rem 1.2rem;
-	border-radius: 1.2rem;
-	background: var(--surface);
-	outline: 3px solid hsl(260deg 70% 60% / 18%);
-	-webkit-backdrop-filter: blur(6px);
-	backdrop-filter: blur(6px);
-  box-shadow: 0 0 30px #241155;
-}
+		h2 {
+			font-size: 1.2rem;
+			color: var(--accent);
+			margin-bottom: 0.5rem;
+		}
 
-.card h2 {
-	font-size: 1.2rem;
-	color: var(--accent);
-	margin-bottom: 0.5rem;
-}
+		ul { padding-left: 1.2rem; display: grid; gap: 0.35rem; }
 
-.card ul { padding-left: 1.2rem; display: grid; gap: 0.35rem; }
+		li::marker { color: var(--accent); }
+	}
 
-.card li::marker { color: var(--accent); }
-
-.foot {
-	text-align: center;
-	color: var(--muted);
-	font-size: 0.95rem;
+	.foot {
+		text-align: center;
+		color: var(--muted);
+		font-size: 0.95rem;
+	}
 }

@@ -2,7 +2,7 @@
   <img src="icons/icon128.png" width="96" height="96" alt="Code Copy logo">
   <h1>Code Copy</h1>
   <p><strong>Click code to copy.</strong> Hold <kbd>Alt</kbd> to copy text from any element.</p>
-  <p>No popup, no options page — only a toolbar toggle.</p>
+  <p>No popup, no options page - only a toolbar toggle.</p>
 </div>
 
 ---
@@ -13,8 +13,8 @@ Chrome extension (Manifest V3) that copies **innerText** to the clipboard. Activ
 
 ### Toolbar
 
-- **On** — full-color icon; tooltip *Code Copy (active — click to deactivate)*.
-- **Off** — grayscale icon; click to turn copying back on.
+- **On**: full-color icon; tooltip *Code Copy (active: click to deactivate)*.
+- **Off**: grayscale icon; click to turn copying back on.
 - State is stored for the **browser session** (`chrome.storage.session`): it resets when you quit the browser. New tabs pick up the current on/off state.
 
 ### Code blocks
@@ -23,8 +23,8 @@ Click a `<code>` element, or a `<pre>` that has **no** nested `<code>` and conta
 
 ### Any element
 
-1. Hold **Alt** — the page shows a copy cursor; elements with text under the pointer are outlined.
-2. **Click** while Alt is held — copies that element’s innerText (skips empty nodes and `<html>` / `<body>`).
+1. Hold **Alt**: the page shows a copy cursor; elements with text under the pointer are outlined.
+2. **Click** while Alt is held, copies that element’s innerText (skips empty nodes and `<html>` / `<body>`).
 
 ### Feedback
 
@@ -41,7 +41,7 @@ Copies visible text as **innerText** (layout-aware), not HTML source or `textCon
 
 ## Install
 
-**Work in progress** — Chrome Web Store link and ID below are placeholders.
+**Work in progress** ; Chrome Web Store link and ID below are placeholders.
 
 <div align="center">
   <a href="https://chrome.google.com/webstore/detail/codecopy/abcdefghijklmnopqrstuvwxyzabcdef">

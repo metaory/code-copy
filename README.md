@@ -1,6 +1,5 @@
 <div align="center">
   <img src="icons/icon128.png" width="96" height="96" alt="Code Copy logo">
-  <img src="assets/logo.svg" />
   <h1>Code Copy</h1>
   <img src="assets/promo-small.png" />
   <p><strong>Click code to copy.</strong> Hold <kbd>Alt</kbd> to copy text from any element.</p>

@@ -51,9 +51,9 @@ Copies **innerText**: the text as laid out on the page.
 
 ## Install
 
-[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/code-copy/pmohebgglggkhehmhbofgbhfgadpjjpc)
 
 <div align="center">
+  <a href="https://chromewebstore.google.com/detail/code-copy/pmohebgglggkhehmhbofgbhfgadpjjpc">Install from the Chrome Web Store</a>
   <a href="https://chromewebstore.google.com/detail/code-copy/pmohebgglggkhehmhbofgbhfgadpjjpc">
     <img src="assets/chromewebstore.png" width="206" height="62" alt="Available in the Chrome Web Store">
   </a>

@@ -1,16 +1,52 @@
-const OFF = 'click to activate';
-const ON = 'click to deactivate';
-const ACTIVE = { active: true };
-const ORIGINS = ['http://*/*', 'https://*/*'];
-const EXCLUDE = ['http://localhost/*', 'http://127.0.0.1/*', 'http://0.0.0.0/*'];
+const OFF = 'Code Copy (inactive — click to activate)';
+const ON = 'Code Copy (active — click to deactivate)';
+const TAB_ACTIVE = 'tabActive';
+const INJECTED = 'injected';
 const LOCAL = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?(\/|$)/;
 const SIZES = [16, 32, 48, 128];
 const iconCache = { on: null, off: null };
 
-const readActive = (data) => (data && 'active' in data ? Boolean(data.active) : true);
-const msg = (on, toast = false) => ({ type: 'active', value: on, toast });
-const http = (url) => (url?.startsWith('http://') || url?.startsWith('https://')) && !LOCAL.test(url ?? '');
-const alwaysOn = () => chrome.permissions.contains({ origins: ORIGINS });
+const injectable = (url) => (url?.startsWith('http://') || url?.startsWith('https://')) && !LOCAL.test(url ?? '');
+const tabKey = (id) => String(id);
+
+const maps = () => chrome.storage.session.get([TAB_ACTIVE, INJECTED]).then((d) => ({
+	tabActive: d[TAB_ACTIVE] ?? {},
+	injected: d[INJECTED] ?? {},
+}));
+
+const patchSession = async (patch) => {
+	const data = await maps();
+	await chrome.storage.session.set({
+		[TAB_ACTIVE]: patch.tabActive ?? data.tabActive,
+		[INJECTED]: patch.injected ?? data.injected,
+	});
+};
+
+const tabOn = (m, id) => Boolean(m[tabKey(id)]);
+
+const setTabOn = async (id, on) => {
+	const { tabActive } = await maps();
+	const k = tabKey(id);
+	const next = { ...tabActive };
+	if (on) next[k] = true;
+	else delete next[k];
+	await patchSession({ tabActive: next });
+};
+
+const markInjected = async (id) => {
+	const { injected } = await maps();
+	await patchSession({ injected: { ...injected, [tabKey(id)]: true } });
+};
+
+const clearTab = async (id) => {
+	const { tabActive, injected } = await maps();
+	const k = tabKey(id);
+	const nextActive = { ...tabActive };
+	const nextInjected = { ...injected };
+	delete nextActive[k];
+	delete nextInjected[k];
+	await patchSession({ tabActive: nextActive, injected: nextInjected });
+};
 
 const raster = async (size, gray) => {
 	const url = chrome.runtime.getURL(`icons/icon${size}.png`);
@@ -35,90 +71,76 @@ const icons = async (on) => {
 	return iconCache[key];
 };
 
-const sync = async (on) => {
+const syncIcon = async (on) => {
 	chrome.action.setTitle({ title: on ? ON : OFF });
 	await chrome.action.setIcon({ imageData: await icons(on) });
 };
 
-const registerAlwaysOn = async () => {
-	if (!(await alwaysOn())) return false;
-	try { await chrome.scripting.unregisterContentScripts({ ids: ['codecopy'] }); } catch {}
-	await chrome.scripting.registerContentScripts([{
-		id: 'codecopy',
-		matches: ORIGINS,
-		excludeMatches: EXCLUDE,
-		js: ['content.js'],
-		css: ['content.css'],
-		runAt: 'document_idle',
-	}]);
-	return true;
+const setPage = async (tabId, on, toast = false) => {
+	try {
+		await chrome.scripting.executeScript({
+			target: { tabId },
+			func: (active, show) => globalThis.__codecopyApply?.(active, show),
+			args: [on, toast],
+		});
+		return true;
+	} catch { return false; }
 };
 
-const injectTab = async (tabId, toast = false) => {
+const injectTab = async (tabId) => {
 	const target = { tabId };
 	await chrome.scripting.insertCSS({ target, files: ['content.css'] });
 	await chrome.scripting.executeScript({ target, files: ['content.js'] });
-	await chrome.tabs.sendMessage(tabId, msg(readActive(await chrome.storage.session.get(ACTIVE)), toast)).catch(() => {});
+	await setPage(tabId, true, true);
 };
-
-const applyTab = async (tabId, on, toast = false) => {
-	await chrome.tabs.sendMessage(tabId, msg(on, toast)).catch(() => {});
-};
-
-const tabs = () => chrome.tabs.query({ url: ORIGINS }).then((xs) => xs.filter((t) => http(t.url)));
-const push = (on, toastTabId = null) =>
-	tabs().then((all) => Promise.all(all.map((tab) => tab.id && applyTab(tab.id, on, tab.id === toastTabId))));
 
 const activeTab = () => chrome.tabs.query({ active: true, currentWindow: true }).then(([t]) => t);
-const refresh = async () => sync(readActive(await chrome.storage.session.get(ACTIVE)));
-const boot = async () => { await registerAlwaysOn(); await refresh(); };
+
+const refreshIcon = async () => {
+	const tab = await activeTab();
+	if (!tab?.id || !injectable(tab.url)) return syncIcon(false);
+	const { tabActive } = await maps();
+	return syncIcon(tabOn(tabActive, tab.id));
+};
+
+const onToggle = async () => {
+	const tab = await activeTab();
+	if (!tab?.id || !injectable(tab.url)) return;
+	const { tabActive, injected } = await maps();
+	const next = !tabOn(tabActive, tab.id);
+	await setTabOn(tab.id, next);
+	await syncIcon(next);
+	if (next && !tabOn(injected, tab.id)) {
+		await injectTab(tab.id);
+		return markInjected(tab.id);
+	}
+	await setPage(tab.id, next, true);
+};
 
 chrome.action.setBadgeText({ text: '' });
-boot();
+refreshIcon();
 
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
-	await registerAlwaysOn();
-	if (reason !== 'install') return refresh();
-	await chrome.storage.session.set({ active: true });
-	await chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') });
-	await refresh();
+	if (reason === 'install') await chrome.windows.create({ url: chrome.runtime.getURL('welcome.html') });
+	await refreshIcon();
 });
 
-chrome.runtime.onStartup.addListener(boot);
+chrome.runtime.onStartup.addListener(refreshIcon);
+chrome.action.onClicked.addListener(onToggle);
 
-chrome.action.onClicked.addListener(async () => {
-	const on = !readActive(await chrome.storage.session.get(ACTIVE));
-	await chrome.storage.session.set({ active: on });
-	await sync(on);
-	const tab = await activeTab();
-	if (!tab?.id || !http(tab.url)) return;
-	if (await alwaysOn()) return push(on, tab.id);
-	if (on) return injectTab(tab.id, true);
-	return applyTab(tab.id, false, false);
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+	const tab = await chrome.tabs.get(tabId);
+	if (!injectable(tab.url)) return syncIcon(false);
+	const { tabActive } = await maps();
+	await syncIcon(tabOn(tabActive, tabId));
 });
 
-chrome.commands.onCommand.addListener(async (cmd) => {
-	if (cmd !== 'activate-tab') return;
-	const tab = await activeTab();
-	if (!tab?.id || !http(tab.url)) return;
-	await chrome.storage.session.set({ active: true });
-	await sync(true);
-	if (await alwaysOn()) return applyTab(tab.id, true, true);
-	return injectTab(tab.id, true);
-});
+chrome.tabs.onRemoved.addListener((tabId) => clearTab(tabId));
 
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
-	if (info.status !== 'complete' || !http(tab.url)) return;
-	await applyTab(tabId, readActive(await chrome.storage.session.get(ACTIVE)));
-});
-
-chrome.runtime.onMessage.addListener((m, _s, reply) => {
-	if (m?.type !== 'enable-always-on') return;
-	chrome.permissions.request({ origins: ORIGINS }).then(async (ok) => {
-		if (!ok) return reply({ ok: false });
-		await registerAlwaysOn();
-		await push(readActive(await chrome.storage.session.get(ACTIVE)));
-		reply({ ok: true });
-	});
-	return true;
+	if (info.status !== 'complete' || !injectable(tab.url)) return;
+	const { injected } = await maps();
+	if (!tabOn(injected, tabId)) return;
+	await clearTab(tabId);
+	if (tab.active) await syncIcon(false);
 });

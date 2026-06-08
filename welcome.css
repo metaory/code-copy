@@ -75,7 +75,6 @@ main {
 		border-radius: 1.2rem;
 		background: var(--surface);
 		outline: 3px solid hsl(260deg 70% 60% / 18%);
-		-webkit-backdrop-filter: blur(6px);
 		backdrop-filter: blur(6px);
 		box-shadow: 0 0 30px #241155;
 
@@ -85,22 +84,25 @@ main {
 			margin-bottom: 0.5rem;
 		}
 
-		ul { padding-left: 1.2rem; display: grid; gap: 0.35rem; }
+		ul, ol { padding-left: 1.2rem; display: grid; gap: 0.35rem; }
 
 		li::marker { color: var(--accent); }
 
-		p + button {
+		p + p { margin-top: 0.5rem; }
+
+		.note {
 			margin-top: 0.75rem;
-			padding: 0.55rem 1rem;
-			border: none;
-			border-radius: 0.75rem;
-			background: var(--accent);
-			color: #fff;
-			font: inherit;
-			cursor: pointer;
+			font-size: 0.95rem;
+			color: var(--muted);
 		}
 
-		#always-on-status { margin-top: 0.75rem; color: #e0d4ff; }
+		code {
+			font-family: ui-monospace, monospace;
+			font-size: 0.9em;
+			background: rgb(0 0 0 / 25%);
+			padding: 0.1em 0.35em;
+			border-radius: 0.25rem;
+		}
 	}
 
 	.foot {

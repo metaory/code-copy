@@ -1,80 +1,82 @@
 <div align="center">
   <img src="icons/icon128.png" width="96" height="96" alt="Code Copy logo">
   <h1>Code Copy</h1>
-  <img src="assets/promo-small.png" />
+  <img src="assets/promo-small.png">
   <p><strong>Click code to copy.</strong> Hold <kbd>Alt</kbd> to copy text from any element.</p>
-  <p>No popup, no options page - only a toolbar toggle.</p>
+  <p>Toolbar toggle. One tab at a time. No popup.</p>
 </div>
 
 ---
 
-Chrome extension (Manifest V3) that copies **innerText** to the clipboard.
+Chrome extension (Manifest V3). Copies **innerText** to the clipboard.
 
 ## Usage
 
-### Enable on a page
+### Per-tab toggle
 
-Click the **toolbar icon** or press **Alt+Shift+C** once on each page you want to use. After a full navigation, enable again.
+You enable Code Copy on each tab separately.
 
-**Optional:** on the welcome page, **Enable on all sites** skips the per-page step on every http/https page.
+Click the **toolbar icon** or press **Alt+C** to turn copying on or off on the tab you are viewing.
 
-### Toolbar
+- **Gray icon:** off on this tab.
+- **Color icon:** active on this tab.
+- **Other tabs:** each keeps its own state. The icon shows the focused tab.
+- **After navigation:** enable again on the new page.
 
-- **On** — full-color icon; tooltip *Code Copy (active — click to deactivate)*.
-- **Off** — grayscale icon; click to turn copying back on.
-- State is stored for the **browser session** (`chrome.storage.session`): it resets when you quit the browser.
+Remap at `chrome://extensions/shortcuts` if **Alt+C** clashes with the site or browser.
 
 ### Code blocks
 
-Click a `<code>` element, or a `<pre>` that has **no** nested `<code>` and contains text. Successful copies show a short **Copied** toast and a brief highlight on the block.
+Click a `<code>` element, or a `<pre>` with no nested `<code>` and some text inside. You get a **Copied** toast and a short highlight on the block.
 
-### Any element
+### Any element (Alt pick)
 
-1. Hold **Alt**: the page shows a copy cursor; elements with text under the pointer are outlined.
-2. **Click** while Alt is held, copies that element’s innerText (skips empty nodes and `<html>` / `<body>`).
+1. Hold **Alt**. The copy cursor appears; text under the pointer gets an outline.
+2. Click while **Alt** stays down. That element's innerText goes to the clipboard. Empty nodes, `<html>`, and `<body>` are skipped.
+
+**Alt** picks elements. **Alt+C** toggles the extension on or off.
 
 ### Feedback
 
-Centered toast: **Copied** or **Copy failed** (clipboard denied or unavailable).
+Toasts: **Copied**, **Copy failed**, **Code Copy Activated**, **Code Copy Deactivated**.
 
 ## Scope
 
 | Runs on | Does not run on |
 |--------|------------------|
-| `http://` and `https://` pages (after enable) | `file://`, `chrome://`, Web Store, etc. |
-| Most public sites | `localhost`, `127.0.0.1`, `0.0.0.0` (excluded when always-on is granted) |
+| `http://` and `https://` pages (after you enable on that tab) | `file://`, `chrome://`, Web Store, etc. |
+| Most public sites | `localhost`, `127.0.0.1`, `0.0.0.0` |
 
-Copies visible text as **innerText** (layout-aware), not HTML source or `textContent` alone.
+Copies **innerText**: the text as laid out on the page.
 
 ## Install
 
-**Work in progress** ; Chrome Web Store link and ID below are placeholders.
+[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/code-copy/pmohebgglggkhehmhbofgbhfgadpjjpc)
 
 <div align="center">
-  <a href="https://chrome.google.com/webstore/detail/codecopy/abcdefghijklmnopqrstuvwxyzabcdef">
-    <img src="https://storage.googleapis.com/chrome-gcs-uploader-uploads-developer-tools-chrome-extensions/ChromeWebStore_BadgeWBorder_v2_206x58.png" width="206" height="58" alt="Available in the Chrome Web Store">
+  <a href="https://chromewebstore.google.com/detail/code-copy/pmohebgglggkhehmhbofgbhfgadpjjpc">
+    <img src="assets/chromewebstore.png" width="206" height="62" alt="Available in the Chrome Web Store">
   </a>
 </div>
 
 ### Development
 
-1. Open `chrome://extensions` → enable **Developer mode** → **Load unpacked** → this directory.
-2. On first load, a **welcome** tab opens with a short usage guide (`welcome.html`).
-3. After code changes, use **Reload** on the extension card, then re-enable on the tab (toolbar click or Alt+Shift+C).
+1. Open `chrome://extensions`, turn on **Developer mode**, **Load unpacked**, pick this directory.
+2. First load opens the welcome window (`welcome.html`).
+3. After code changes, **Reload** the extension, then click the toolbar icon or press **Alt+C** on the tab.
 
-To open the welcome page again: remove the extension and load unpacked, or run `chrome.tabs.create({ url: chrome.runtime.getURL('welcome.html') })` from the service worker console on `chrome://extensions`.
+Open the welcome page again: reinstall unpacked, or run `chrome.windows.create({ url: chrome.runtime.getURL('welcome.html') })` from the service worker console on `chrome://extensions`.
 
-To exercise the extension on a machine-local app, grant always-on from the welcome page and temporarily allow localhost in `worker.js` `EXCLUDE`, or use a non-localhost URL.
+Store ZIP: `.dev/store-launch/package.sh` writes `dist/codecopy-v*.zip`.
 
 ## Permissions
 
 | Permission | Why |
 |------------|-----|
-| `activeTab` | Inject copy handlers on the current tab after toolbar click or Alt+Shift+C |
-| `storage` | Session on/off toggle |
+| `activeTab` | Inject copy handlers after toolbar click or Alt+C |
+| `storage` | Per-tab on/off state for the browser session |
 | `scripting` | Inject bundled CSS and JS |
-| `tabs` | Sync toggle, welcome page on install |
-| Optional `http://*/*`, `https://*/*` | User-initiated always-on via welcome page |
+| `tabs` | Match toolbar icon to the focused tab; reset after navigation |
 
 ## License
 

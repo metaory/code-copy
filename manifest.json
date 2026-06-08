@@ -2,13 +2,12 @@
   "name": "Code Copy",
   "short_name": "codecopy",
   "description": "Click code blocks to copy. Hold Alt and click any element to copy its text.",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "manifest_version": 3,
-  "permissions": ["storage", "scripting", "tabs", "activeTab"],
-  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "permissions": ["storage", "scripting", "activeTab", "tabs"],
   "background": { "service_worker": "worker.js" },
   "action": {
-    "default_title": "Code Copy (active — click to deactivate)",
+    "default_title": "Code Copy (inactive — click to activate)",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -17,10 +16,9 @@
     }
   },
   "commands": {
-    "_execute_action": { "description": "Toggle Code Copy" },
-    "activate-tab": {
-      "suggested_key": { "default": "Alt+Shift+C" },
-      "description": "Enable Code Copy on this tab"
+    "_execute_action": {
+      "suggested_key": { "default": "Alt+C" },
+      "description": "Toggle Code Copy"
     }
   },
   "icons": {

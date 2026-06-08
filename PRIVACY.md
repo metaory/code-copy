@@ -1,6 +1,6 @@
 # Privacy Policy — Code Copy
 
-Last updated: June 7, 2026
+Last updated: June 8, 2026
 
 ## Summary
 
@@ -8,11 +8,11 @@ Code Copy does not collect, sell, or transmit personal data or browsing history.
 
 ## Data We Store
 
-The extension stores one preference on your device:
+The extension stores per-tab preferences on your device:
 
 | Data | Where | Purpose | Retention |
 |------|-------|---------|-----------|
-| Active/inactive toggle state | `chrome.storage.session` | Remember whether copying is enabled for the current browser session | Cleared when you quit the browser |
+| Per-tab active/inactive state | `chrome.storage.session` | Remember whether copying is enabled on each tab for the current browser session | Cleared when you quit the browser |
 
 This data never leaves your device and is not synced to your Google account.
 
@@ -28,7 +28,7 @@ Code Copy does not:
 
 ## How the Extension Uses Page Access
 
-Code Copy requests access to web pages only after you click the toolbar icon, press Alt+Shift+C, or optionally grant always-on from the welcome page. It can:
+Code Copy injects into a page only after you click the toolbar icon or press Alt+C on that tab. It can:
 
 - Detect clicks on `<code>` and `<pre>` elements
 - Copy visible text (`innerText`) to your clipboard when you choose to copy
@@ -36,17 +36,16 @@ Code Copy requests access to web pages only after you click the toolbar icon, pr
 
 The extension reads page content only in response to your clicks. It does not scan, index, or upload page content in the background.
 
-Local development URLs (`localhost`, `127.0.0.1`, `0.0.0.0`) are excluded by default.
+Local development URLs (`localhost`, `127.0.0.1`, `0.0.0.0`) are not supported.
 
 ## Permissions
 
 | Permission | Why |
 |------------|-----|
-| `activeTab` | Inject copy handlers on the current tab after toolbar click or Alt+Shift+C |
-| `storage` | Save the on/off toggle for the current browser session |
-| `scripting` | Inject bundled CSS and JS on user gesture or after optional always-on |
-| `tabs` | Find open tabs and read tab URLs to sync the toggle state |
-| Optional host (`http://*/*`, `https://*/*`) | User-initiated always-on; auto-inject on pages without per-tab enable |
+| `activeTab` | Inject copy handlers on the current tab after toolbar click or Alt+C |
+| `storage` | Save per-tab on/off state for the current browser session |
+| `scripting` | Inject bundled CSS and JS on user gesture |
+| `tabs` | Sync the toolbar icon when you switch tabs; clear state when a tab closes or navigates |
 
 ## Third-Party Services
 
@@ -58,7 +57,7 @@ We do not share any data with third parties. There is no data to share.
 
 ## Your Controls
 
-- **Stop copying:** Click the toolbar icon to deactivate the extension.
+- **Stop copying on a tab:** Click the toolbar icon to deactivate on that tab.
 - **Clear stored state:** Quit the browser (session storage is cleared automatically).
 - **Remove the extension:** Uninstall from `chrome://extensions` to remove all extension data.
 

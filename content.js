@@ -2,7 +2,7 @@ const ID = 'codecopy-toast';
 const FONT = 'Vintaface-Regular';
 const FONT_SRC = chrome.runtime.getURL('assets/Vintaface-Regular.woff2');
 const SKIP = new Set(['HTML', 'BODY']);
-const SHINE_MS = 200;
+const SHINE_MS = 200; // matches --cc-shine in content.css
 const TOAST = {
 	copied: { body: 'Copied', ms: 600 },
 	failed: { body: 'Copy failed', ms: 600 },
@@ -54,12 +54,12 @@ const renderToast = (root, spec) => {
 	}
 	const title = Object.assign(document.createElement('div'), { className: 'codecopy-toast-title', textContent: spec.title });
 	const tips = Object.assign(document.createElement('div'), { className: 'codecopy-toast-tips' });
-	spec.tips.map((line) => tips.append(Object.assign(document.createElement('div'), { textContent: `• ${line}` })));
+	tips.replaceChildren(...spec.tips.map((line) => Object.assign(document.createElement('div'), { textContent: `• ${line}` })));
 	root.append(title, tips);
 };
 
 const showToast = (spec) => {
-	Promise.resolve(fontReady).finally(() => {
+	fontReady.finally(() => {
 		if (!toastEl) toastEl = Object.assign(document.createElement('div'), { id: ID, ariaLive: 'polite' });
 		if (!toastEl.isConnected) document.body.append(toastEl);
 		renderToast(toastEl, spec);
@@ -130,58 +130,58 @@ const swallow = (e) => {
 };
 
 const onKey = (e, down) => {
+	if (!state.on) return;
 	if (e.key !== 'Alt') return;
 	setAlt(down);
 };
 
 const onClick = (e) => {
+	if (!state.on) return;
 	const el = hit(e);
 	if (!el || e.defaultPrevented) return;
 	copy(el).then((ok) => ok && swallow(e));
+};
+
+const onMove = (e) => {
+	if (!state.on || !mod(e)) return;
+	mark(hit(e));
 };
 
 const listeners = [
 	['keydown', (e) => onKey(e, true)],
 	['keyup', (e) => onKey(e, false)],
 	['blur', () => setAlt(false)],
-	['mousemove', (e) => mod(e) && mark(hit(e))],
+	['mousemove', onMove],
 	['click', onClick, { capture: true }],
 ];
 
 const setOn = (on) => {
 	if (state.on === on) return;
 	state.on = on;
+	document.documentElement.classList.toggle('codecopy-on', on);
 	const op = on ? 'addEventListener' : 'removeEventListener';
-	listeners.map(([name, fn, opts]) => window[op](name, fn, opts));
+	for (const [name, fn, opts] of listeners) window[op](name, fn, opts ?? false);
 	if (!on) setAlt(false);
 };
 
-const applyActive = (v) => setOn(Boolean(v));
+const applyPage = (on, toast) => {
+	setOn(Boolean(on));
+	if (toast) showToast(TOAST[on ? 'on' : 'off']);
+};
+
+globalThis.__codecopyApply = applyPage;
 
 const api = (fn) => {
 	try { fn(); }
 	catch (e) { if (!/invalidated/i.test(String(e))) console.error(e); }
 };
 
-const ACTIVE = { active: true };
-const readActive = (data) => (data && 'active' in data ? Boolean(data.active) : true);
-const boot = () => api(() => chrome.storage.session.get(ACTIVE, (data) => applyActive(readActive(data))));
-
-globalThis.__codecopy = { boot };
-
-if (globalThis.__codecopyReady) globalThis.__codecopy.boot();
-else {
+if (!globalThis.__codecopyReady) {
 	globalThis.__codecopyReady = true;
 	api(() => {
-		boot();
-		chrome.storage.onChanged.addListener((c, a) => {
-			if (a !== 'session' || !('active' in (c ?? {}))) return;
-			applyActive(c.active.newValue);
-		});
 		chrome.runtime.onMessage.addListener((m) => {
 			if (m?.type !== 'active') return;
-			applyActive(m.value);
-			if (m.toast) showToast(TOAST[m.value ? 'on' : 'off']);
+			applyPage(m.value, m.toast);
 		});
 	});
 }

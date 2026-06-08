@@ -11,9 +11,22 @@
 		<header class="hero">
 			<img src="icons/icon128.png" width="96" height="96" alt="">
 			<h1>Code Copy</h1>
-        <p class="lead"><strong>Click <kbd>code</kbd> to copy.</strong></p>
-        <p class="lead">Hold <kbd>Alt</kbd> and click any element to copy its text.</p>
+			<p class="lead"><strong>Click <kbd>code</kbd> to copy.</strong></p>
+			<p class="lead">Hold <kbd>Alt</kbd> and click any element to copy its text.</p>
 		</header>
+		<section class="card">
+			<h2>Enable on a page</h2>
+			<ul>
+				<li>Click the toolbar icon, or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>, once per page.</li>
+				<li>After a full navigation, enable again on the new page.</li>
+			</ul>
+		</section>
+		<section class="card">
+			<h2>Enable everywhere</h2>
+			<p>Optional — skip the per-page step on every http and https site.</p>
+			<button type="button" id="always-on">Enable on all sites</button>
+			<p id="always-on-status" hidden>Always-on enabled for this browser.</p>
+		</section>
 		<section class="card">
 			<h2>Toolbar</h2>
 			<ul>
@@ -36,7 +49,19 @@
 				<li>Click while <kbd>Alt</kbd> is held — copies that element’s visible text.</li>
 			</ul>
 		</section>
-		<p class="foot">No popup or options page. only the toolbar toggle. Visit any page and try it.</p>
+		<p class="foot">No popup or options page — only the toolbar toggle.</p>
 	</main>
+	<script type="module">
+		const btn = document.getElementById('always-on');
+		const status = document.getElementById('always-on-status');
+		const origins = ['http://*/*', 'https://*/*'];
+		const sync = async () => {
+			const ok = await chrome.permissions.contains({ origins });
+			btn.hidden = ok;
+			status.hidden = !ok;
+		};
+		btn.addEventListener('click', () => chrome.runtime.sendMessage({ type: 'enable-always-on' }, () => sync()));
+		sync();
+	</script>
 </body>
 </html>

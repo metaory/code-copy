@@ -28,7 +28,7 @@ Code Copy does not:
 
 ## How the Extension Uses Page Access
 
-Code Copy requests access to `http://` and `https://` pages so it can:
+Code Copy requests access to web pages only after you click the toolbar icon, press Alt+Shift+C, or optionally grant always-on from the welcome page. It can:
 
 - Detect clicks on `<code>` and `<pre>` elements
 - Copy visible text (`innerText`) to your clipboard when you choose to copy
@@ -42,10 +42,11 @@ Local development URLs (`localhost`, `127.0.0.1`, `0.0.0.0`) are excluded by def
 
 | Permission | Why |
 |------------|-----|
+| `activeTab` | Inject copy handlers on the current tab after toolbar click or Alt+Shift+C |
 | `storage` | Save the on/off toggle for the current browser session |
-| `scripting` | Inject the content script when toggling state on open tabs |
+| `scripting` | Inject bundled CSS and JS on user gesture or after optional always-on |
 | `tabs` | Find open tabs and read tab URLs to sync the toggle state |
-| Host access (`<all_urls>`) | Run the copy interaction on pages you visit |
+| Optional host (`http://*/*`, `https://*/*`) | User-initiated always-on; auto-inject on pages without per-tab enable |
 
 ## Third-Party Services
 

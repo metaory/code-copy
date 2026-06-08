@@ -2,10 +2,10 @@
   "name": "Code Copy",
   "short_name": "codecopy",
   "description": "Click code blocks to copy. Hold Alt and click any element to copy its text.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "manifest_version": 3,
-  "permissions": ["storage", "scripting", "tabs"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": ["storage", "scripting", "tabs", "activeTab"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
   "background": { "service_worker": "worker.js" },
   "action": {
     "default_title": "Code Copy (active — click to deactivate)",
@@ -14,6 +14,13 @@
       "32": "icons/icon32.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
+    }
+  },
+  "commands": {
+    "_execute_action": { "description": "Toggle Code Copy" },
+    "activate-tab": {
+      "suggested_key": { "default": "Alt+Shift+C" },
+      "description": "Enable Code Copy on this tab"
     }
   },
   "icons": {
@@ -25,17 +32,10 @@
   "author": {
     "email": "metaory@gmail.com"
   },
-  "content_scripts": [
+  "web_accessible_resources": [
     {
-      "matches": ["<all_urls>"],
-      "exclude_matches": [
-        "http://localhost/*",
-        "http://127.0.0.1/*",
-        "http://0.0.0.0/*"
-      ],
-      "js": ["content.js"],
-      "css": ["content.css"],
-      "run_at": "document_idle"
+      "resources": ["assets/Vintaface-Regular.woff2"],
+      "matches": ["http://*/*", "https://*/*"]
     }
   ]
 }

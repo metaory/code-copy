@@ -88,6 +88,19 @@ main {
 		ul { padding-left: 1.2rem; display: grid; gap: 0.35rem; }
 
 		li::marker { color: var(--accent); }
+
+		p + button {
+			margin-top: 0.75rem;
+			padding: 0.55rem 1rem;
+			border: none;
+			border-radius: 0.75rem;
+			background: var(--accent);
+			color: #fff;
+			font: inherit;
+			cursor: pointer;
+		}
+
+		#always-on-status { margin-top: 0.75rem; color: #e0d4ff; }
 	}
 
 	.foot {

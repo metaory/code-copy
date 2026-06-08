@@ -36,10 +36,6 @@ Click a `<code>` element, or a `<pre>` with no nested `<code>` and some text ins
 
 **Alt** picks elements. **Alt+C** toggles the extension on or off.
 
-### Feedback
-
-Toasts: **Copied**, **Copy failed**, **Code Copy Activated**, **Code Copy Deactivated**.
-
 ## Scope
 
 | Runs on | Does not run on |
@@ -54,8 +50,9 @@ Copies **innerText**: the text as laid out on the page.
 
 <div align="center">
   <a href="https://chromewebstore.google.com/detail/code-copy/pmohebgglggkhehmhbofgbhfgadpjjpc">Install from the Chrome Web Store</a>
+  <br>
   <a href="https://chromewebstore.google.com/detail/code-copy/pmohebgglggkhehmhbofgbhfgadpjjpc">
-    <img src="assets/chromewebstore.png" width="206" height="62" alt="Available in the Chrome Web Store">
+    <img src="assets/chromewebstore.png" width="280" alt="Available in the Chrome Web Store">
   </a>
 </div>
 

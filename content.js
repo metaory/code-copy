@@ -139,7 +139,8 @@ const onClick = (e) => {
 	if (!state.on) return;
 	const el = hit(e);
 	if (!el || e.defaultPrevented) return;
-	copy(el).then((ok) => ok && swallow(e));
+	swallow(e);
+	copy(el);
 };
 
 const onMove = (e) => {

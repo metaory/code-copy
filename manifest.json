@@ -2,7 +2,7 @@
   "name": "Code Copy",
   "short_name": "codecopy",
   "description": "Click code blocks to copy. Hold Alt and click any element to copy its text.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "manifest_version": 3,
   "permissions": ["storage", "scripting", "activeTab", "tabs"],
   "background": { "service_worker": "worker.js" },

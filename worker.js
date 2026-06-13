@@ -129,8 +129,8 @@ chrome.runtime.onStartup.addListener(refreshIcon);
 chrome.action.onClicked.addListener(onToggle);
 
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
-	const tab = await chrome.tabs.get(tabId);
-	if (!injectable(tab.url)) return syncIcon(false);
+	const tab = await chrome.tabs.get(tabId).catch(() => null);
+	if (!tab || !injectable(tab.url)) return syncIcon(false);
 	const { tabActive } = await maps();
 	await syncIcon(tabOn(tabActive, tabId));
 });

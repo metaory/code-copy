@@ -31,12 +31,9 @@ body {
 	padding: clamp(1.5rem, 5vw, 3rem);
 	background: radial-gradient(ellipse 120% 80% at 50% 0%, #2a1050, #0a0218 70%);
 	color: var(--text);
-	font: 400 1.125rem/1.5 var(--font);
+	font: 600 1.125rem/1.5 var(--font-body);
 
-	p, li {
-		font-family: var(--font-body);
-		font-weight: 600;
-	}
+	h1, h2 { font-family: var(--font); font-weight: 400; }
 
 	kbd {
 		font: inherit;

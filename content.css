@@ -1,5 +1,6 @@
 :root {
 	--cc-font: 'Vintaface-Regular', system-ui, sans-serif;
+	--cc-font-body: baloo, system-ui, sans-serif;
 	--cc-accent: #6655ff;
 	--cc-text: #8855dd;
 	--cc-surface: rgb(20 0 40 / 60%);
@@ -45,7 +46,7 @@ pre.codecopy-shine { animation: codecopy-shine var(--cc-shine) ease-out; border-
 	border-radius: 38px;
 	background: var(--cc-surface);
 	color: var(--cc-text);
-	font: 400 32px/1 var(--cc-font);
+	font: 600 32px/1 var(--cc-font-body);
 	letter-spacing: 0.3px;
 	z-index: 2147483647;
 	opacity: 0;
@@ -56,12 +57,9 @@ pre.codecopy-shine { animation: codecopy-shine var(--cc-shine) ease-out; border-
 
 	&.show { opacity: 1; }
 
-	.codecopy-toast-title { line-height: 1.1; }
-
-	.codecopy-toast-tips {
-		margin-top: 14px;
-		font-size: 22px;
-		line-height: 1.35;
-		text-align: left;
+	.codecopy-toast-title {
+		font-family: var(--cc-font);
+		font-weight: 400;
+		line-height: 1.1;
 	}
 }

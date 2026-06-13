@@ -1,73 +1,64 @@
 const ID = 'codecopy-toast';
-const FONT = 'Vintaface-Regular';
-const FONT_SRC = chrome.runtime.getURL('assets/Vintaface-Regular.woff2');
+const FONTS = [
+	['Vintaface-Regular', chrome.runtime.getURL('assets/Vintaface-Regular.woff2'), 400, '32px'],
+	['baloo', chrome.runtime.getURL('assets/baloo-2-latin-600-normal.woff2'), 600, '22px'],
+];
 const SKIP = new Set(['HTML', 'BODY']);
 const SHINE_MS = 200; // matches --cc-shine in content.css
 const TOAST = {
 	copied: { body: 'Copied', ms: 600 },
 	failed: { body: 'Copy failed', ms: 600 },
-	off: { body: 'Code Copy Deactivated', ms: 2_000 },
-	on: {
-		title: 'Code Copy Activated',
-		tips: [
-			'Single left mouse click on code elements to copy',
-			'Hold Alt and left mouse click on any element to copy',
-		],
-		ms: 4_000,
-	},
+	off: { title: 'Code Copy Deactivated', ms: 2_000 },
+	on: { title: 'Code Copy Activated', ms: 4_000 },
 };
 const state = { alt: false, mark: null, on: false };
 
+const mk = (tag, props) => Object.assign(document.createElement(tag), props);
+const all = (...fs) => (x) => fs.every((f) => f(x));
+const when = (node, ok, find = (n) => n) => {
+	const n = node instanceof Element ? node : null;
+	return n && ok(n) ? find(n) || null : null;
+};
+const on = (fn) => (...a) => state.on && fn(...a);
 const pulse = (ms) => {
 	let t = 0;
-	return (fn) => {
-		clearTimeout(t);
-		t = setTimeout(fn, ms);
-	};
+	return (fn) => { clearTimeout(t); t = setTimeout(fn, ms); };
 };
 
-const injectFace = (url) => {
-	const id = 'codecopy-font';
-	if (document.getElementById(id)) return;
-	const tag = Object.assign(document.createElement('style'), { id });
-	tag.textContent = `@font-face{font-family:'${FONT}';src:url("${url}") format("woff2");font-weight:400;font-style:normal;font-display:swap}`;
-	document.documentElement.append(tag);
+const injectFaces = (urls) => {
+	if (document.getElementById('codecopy-font')) return;
+	const faces = FONTS.map(([family, , weight], i) =>
+		`@font-face{font-family:'${family}';src:url("${urls[i]}") format("woff2");font-weight:${weight};font-style:normal;font-display:swap}`,
+	).join('');
+	document.documentElement.append(mk('style', { id: 'codecopy-font', textContent: faces }));
 };
 
-const fontReady = fetch(FONT_SRC)
-	.then((r) => (r.ok ? r.blob() : Promise.reject(new Error(`font ${r.status}`))))
-	.then((blob) => {
-		const url = URL.createObjectURL(blob);
-		injectFace(url);
-		return document.fonts.load(`32px '${FONT}'`);
+Promise.all(FONTS.map(([family, src, , size]) =>
+	fetch(src)
+		.then((r) => (r.ok ? r.blob() : Promise.reject(new Error(`font ${r.status}`))))
+		.then((blob) => ({ family, size, url: URL.createObjectURL(blob) })),
+))
+	.then((loaded) => {
+		injectFaces(loaded.map(({ url }) => url));
+		return Promise.all(loaded.map(({ family, size }) => document.fonts.load(`${size} '${family}'`)));
 	})
 	.catch(console.error);
 
-let toastEl = null;
-let hideT = 0;
-
-const renderToast = (root, spec) => {
-	root.replaceChildren();
-	if (spec.body) {
-		root.textContent = spec.body;
-		return;
-	}
-	const title = Object.assign(document.createElement('div'), { className: 'codecopy-toast-title', textContent: spec.title });
-	const tips = Object.assign(document.createElement('div'), { className: 'codecopy-toast-tips' });
-	tips.replaceChildren(...spec.tips.map((line) => Object.assign(document.createElement('div'), { textContent: `• ${line}` })));
-	root.append(title, tips);
-};
-
-const showToast = (spec) => {
-	fontReady.finally(() => {
-		if (!toastEl) toastEl = Object.assign(document.createElement('div'), { id: ID, ariaLive: 'polite' });
-		if (!toastEl.isConnected) document.body.append(toastEl);
-		renderToast(toastEl, spec);
-		toastEl.classList.add('show');
+const toast = (() => {
+	let el, hideT;
+	return (spec) => {
+		el ??= mk('div', { id: ID, ariaLive: 'polite' });
+		if (!el.isConnected) document.body.append(el);
+		el.replaceChildren(
+			spec.body
+				? document.createTextNode(spec.body)
+				: mk('div', { className: 'codecopy-toast-title', textContent: spec.title }),
+		);
+		el.classList.add('show');
 		clearTimeout(hideT);
-		hideT = setTimeout(() => toastEl.classList.remove('show'), spec.ms ?? 600);
-	});
-};
+		hideT = setTimeout(() => el.classList.remove('show'), spec.ms ?? 22600);
+	};
+})();
 
 const endShine = pulse(SHINE_MS);
 const shine = (el) => {
@@ -79,43 +70,33 @@ const shine = (el) => {
 
 const own = (el) => el?.closest?.(`#${ID}`);
 const hasText = (el) => Boolean(el?.innerText?.trim());
+const notOwn = (n) => !own(n);
+const barePre = (p) => !p.querySelector('code') && hasText(p);
+const pickable = all(notOwn, (n) => !SKIP.has(n.tagName), hasText);
+const codeBlock = (n) => when(n.closest('code'), hasText) || when(n.closest('pre'), barePre);
 
-const when = (node, ok, find = (n) => n) => {
-	const n = node instanceof Element ? node : null;
-	return n && ok(n) ? find(n) || null : null;
-};
-
-const pickable = (n) => !own(n) && !SKIP.has(n.tagName) && hasText(n);
-
-const codeBlock = (n) => {
-	const c = n.closest('code');
-	if (c && hasText(c)) return c;
-	const p = n.closest('pre');
-	return p && !p.querySelector('code') && hasText(p) ? p : null;
-};
-
-const pick = (x, y) => when(document.elementFromPoint(x, y), pickable);
-const code = (t) => when(t, (n) => !own(n), codeBlock);
 const mod = (e) => state.alt || e.altKey;
-const hit = (e) => (mod(e) ? pick(e.clientX, e.clientY) : code(e.target));
+const at = (e) => document.elementFromPoint(e.clientX, e.clientY);
+const hit = (e) => (mod(e) ? when(at(e), pickable) : when(e.target, notOwn, codeBlock));
 
-const notify = (msg, ok, el) => {
-	showToast(msg);
-	if (ok && !state.alt && el) shine(el);
+const shineIf = (ok, el) => ok && !state.alt && el && shine(el);
+const notify = (spec, ok, el) => {
+	toast(spec);
+	shineIf(ok, el);
 	return ok;
 };
-
-const copy = (el) => (hasText(el)
+const copy = (el) => hasText(el)
 	? navigator.clipboard.writeText(el.innerText)
 		.then(() => notify(TOAST.copied, true, el))
 		.catch(() => notify(TOAST.failed, false))
-	: Promise.resolve(false));
+	: Promise.resolve(false);
 
+const cls = (el, name, add) => el?.classList[add ? 'add' : 'remove'](name);
 const mark = (el) => {
 	if (state.mark === el) return;
-	state.mark?.classList.remove('codecopy-x');
+	cls(state.mark, 'codecopy-x', false);
 	state.mark = el;
-	el?.classList.add('codecopy-x');
+	cls(el, 'codecopy-x', true);
 };
 
 const setAlt = (on) => {
@@ -129,60 +110,51 @@ const swallow = (e) => {
 	e.stopPropagation();
 };
 
-const onKey = (e, down) => {
-	if (!state.on) return;
-	if (e.key !== 'Alt') return;
-	setAlt(down);
-};
-
+const isAlt = (e) => e.key === 'Alt';
+const altEv = (down) => on((e) => isAlt(e) && setAlt(down));
 const onClick = (e) => {
-	if (!state.on) return;
 	const el = hit(e);
 	if (!el || e.defaultPrevented) return;
 	swallow(e);
 	copy(el);
 };
 
-const onMove = (e) => {
-	if (!state.on || !mod(e)) return;
-	mark(hit(e));
-};
-
 const listeners = [
-	['keydown', (e) => onKey(e, true)],
-	['keyup', (e) => onKey(e, false)],
-	['blur', () => setAlt(false)],
-	['mousemove', onMove],
-	['click', onClick, { capture: true }],
+	['keydown', altEv(true)],
+	['keyup', altEv(false)],
+	['blur', on(() => setAlt(false))],
+	['mousemove', on((e) => mod(e) && mark(hit(e)))],
+	['click', on(onClick), { capture: true }],
 ];
+
+const wire = (on) => {
+	const op = on ? 'addEventListener' : 'removeEventListener';
+	for (const [name, fn, opts] of listeners) window[op](name, fn, opts ?? false);
+};
 
 const setOn = (on) => {
 	if (state.on === on) return;
 	state.on = on;
 	document.documentElement.classList.toggle('codecopy-on', on);
-	const op = on ? 'addEventListener' : 'removeEventListener';
-	for (const [name, fn, opts] of listeners) window[op](name, fn, opts ?? false);
+	wire(on);
 	if (!on) setAlt(false);
 };
 
-const applyPage = (on, toast) => {
+const applyPage = (on, show) => {
 	setOn(Boolean(on));
-	if (toast) showToast(TOAST[on ? 'on' : 'off']);
+	if (show) toast(TOAST[on ? 'on' : 'off']);
 };
 
 globalThis.__codecopyApply = applyPage;
 
-const api = (fn) => {
-	try { fn(); }
-	catch (e) { if (!/invalidated/i.test(String(e))) console.error(e); }
-};
-
 if (!globalThis.__codecopyReady) {
 	globalThis.__codecopyReady = true;
-	api(() => {
+	try {
 		chrome.runtime.onMessage.addListener((m) => {
 			if (m?.type !== 'active') return;
 			applyPage(m.value, m.toast);
 		});
-	});
+	} catch (e) {
+		if (!/invalidated/i.test(String(e))) console.error(e);
+	}
 }

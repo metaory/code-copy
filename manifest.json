@@ -32,7 +32,10 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["assets/Vintaface-Regular.woff2"],
+      "resources": [
+        "assets/Vintaface-Regular.woff2",
+        "assets/baloo-2-latin-600-normal.woff2"
+      ],
       "matches": ["http://*/*", "https://*/*"]
     }
   ]

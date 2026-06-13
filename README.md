@@ -8,33 +8,35 @@
 
 ---
 
-Chrome extension (Manifest V3). Copies **innerText** to the clipboard.
+Manifest V3 Chrome extension. It copies **innerText** to the clipboard.
 
 ## Usage
 
 ### Per-tab toggle
 
-You enable Code Copy on each tab separately.
+Each tab keeps its own on/off state.
 
-Click the **toolbar icon** or press **Alt+C** to turn copying on or off on the tab you are viewing.
+Click the **toolbar icon** or press **Alt+C** to toggle copying on the tab in front.
 
 - **Gray icon:** off on this tab.
-- **Color icon:** active on this tab.
-- **Other tabs:** each keeps its own state. The icon shows the focused tab.
-- **After navigation:** enable again on the new page.
+- **Color icon:** on on this tab.
+- **Other tabs:** unchanged. The icon reflects the focused tab.
+- **After navigation:** turn it on again on the new page.
+
+Toggle shows a short toast: **Code Copy Activated** or **Code Copy Deactivated**.
 
 Remap at `chrome://extensions/shortcuts` if **Alt+C** clashes with the site or browser.
 
 ### Code blocks
 
-Click a `<code>` element, or a `<pre>` with no nested `<code>` and some text inside. You get a **Copied** toast and a short highlight on the block.
+Click a `<code>` element, or a `<pre>` with no nested `<code>` and some text inside. A **Copied** toast and a short highlight appear on the block.
 
 ### Any element (Alt pick)
 
 1. Hold **Alt**. The copy cursor appears; text under the pointer gets an outline.
 2. Click while **Alt** stays down. That element's innerText goes to the clipboard. Empty nodes, `<html>`, and `<body>` are skipped.
 
-**Alt** picks elements. **Alt+C** toggles the extension on or off.
+**Alt** picks an element. **Alt+C** toggles the extension.
 
 ## Scope
 
@@ -43,10 +45,9 @@ Click a `<code>` element, or a `<pre>` with no nested `<code>` and some text ins
 | `http://` and `https://` pages (after you enable on that tab) | `file://`, `chrome://`, Web Store, etc. |
 | Most public sites | `localhost`, `127.0.0.1`, `0.0.0.0` |
 
-Copies **innerText**: the text as laid out on the page.
+It copies **innerText**, the text as laid out on the page.
 
 ## Install
-
 
 <div align="center">
   <a href="https://chromewebstore.google.com/detail/code-copy/pmohebgglggkhehmhbofgbhfgadpjjpc">Install from the Chrome Web Store</a>

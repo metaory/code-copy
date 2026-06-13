@@ -1,15 +1,14 @@
 const ID = 'codecopy-toast';
 const FONTS = [
-	['Vintaface-Regular', chrome.runtime.getURL('assets/Vintaface-Regular.woff2'), 400, '32px'],
-	['baloo', chrome.runtime.getURL('assets/baloo-2-latin-600-normal.woff2'), 600, '22px'],
+	['Vintaface-Regular', chrome.runtime.getURL('assets/Vintaface-Regular.woff2'), 400, '26px'],
 ];
 const SKIP = new Set(['HTML', 'BODY']);
 const SHINE_MS = 200; // matches --cc-shine in content.css
 const TOAST = {
-	copied: { body: 'Copied', ms: 600 },
-	failed: { body: 'Copy failed', ms: 600 },
-	off: { title: 'Code Copy Deactivated', ms: 2_000 },
-	on: { title: 'Code Copy Activated', ms: 4_000 },
+	copied: ['Copied', 600],
+	failed: ['Copy failed', 600],
+	off: ['Code Copy Deactivated', 9_992_000],
+	on: ['Code Copy Activated', 9_994_000],
 };
 const state = { alt: false, mark: null, on: false };
 
@@ -46,17 +45,13 @@ Promise.all(FONTS.map(([family, src, , size]) =>
 
 const toast = (() => {
 	let el, hideT;
-	return (spec) => {
+	return ([text, ms]) => {
 		el ??= mk('div', { id: ID, ariaLive: 'polite' });
 		if (!el.isConnected) document.body.append(el);
-		el.replaceChildren(
-			spec.body
-				? document.createTextNode(spec.body)
-				: mk('div', { className: 'codecopy-toast-title', textContent: spec.title }),
-		);
+		el.textContent = text;
 		el.classList.add('show');
 		clearTimeout(hideT);
-		hideT = setTimeout(() => el.classList.remove('show'), spec.ms ?? 22600);
+		hideT = setTimeout(() => el.classList.remove('show'), ms);
 	};
 })();
 

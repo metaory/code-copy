@@ -7,8 +7,8 @@ const SHINE_MS = 200; // matches --cc-shine in content.css
 const TOAST = {
 	copied: ['Copied', 600],
 	failed: ['Copy failed', 600],
-	off: ['Code Copy Deactivated', 9_992_000],
-	on: ['Code Copy Activated', 9_994_000],
+	off: ['Code Copy Deactivated', 2_000],
+	on: ['Code Copy Activated', 4_000],
 };
 const state = { alt: false, mark: null, on: false };
 

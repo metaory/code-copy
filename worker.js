@@ -3,10 +3,24 @@ const ON = 'Code Copy (active — click to deactivate)';
 const TAB_ACTIVE = 'tabActive';
 const INJECTED = 'injected';
 const LOCAL = /^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?(\/|$)/;
+const BLOCKED = {
+	'chromewebstore.google.com': () => true,
+	'chrome.google.com': ({ pathname }) => pathname.startsWith('/webstore'),
+};
 const SIZES = [16, 32, 48, 128];
 const iconCache = { on: null, off: null };
 
-const injectable = (url) => (url?.startsWith('http://') || url?.startsWith('https://')) && !LOCAL.test(url ?? '');
+const injectable = (url) => {
+	try {
+		const u = new URL(url);
+		if (!['http:', 'https:'].includes(u.protocol) || LOCAL.test(url)) return false;
+		return !BLOCKED[u.hostname]?.(u);
+	} catch { return false; }
+};
+
+const tryScript = async (fn) => {
+	try { await fn(); return true; } catch { return false; }
+};
 const tabKey = (id) => String(id);
 
 const maps = () => chrome.storage.session.get([TAB_ACTIVE, INJECTED]).then((d) => ({
@@ -76,23 +90,20 @@ const syncIcon = async (on) => {
 	await chrome.action.setIcon({ imageData: await icons(on) });
 };
 
-const setPage = async (tabId, on, toast = false) => {
-	try {
-		await chrome.scripting.executeScript({
-			target: { tabId },
-			func: (active, show) => globalThis.__codecopyApply?.(active, show),
-			args: [on, toast],
-		});
-		return true;
-	} catch { return false; }
-};
+const setPage = (tabId, on, toast = false) => tryScript(() =>
+	chrome.scripting.executeScript({
+		target: { tabId },
+		func: (active, show) => globalThis.__codecopyApply?.(active, show),
+		args: [on, toast],
+	}),
+);
 
-const injectTab = async (tabId) => {
+const injectTab = (tabId) => tryScript(async () => {
 	const target = { tabId };
 	await chrome.scripting.insertCSS({ target, files: ['content.css'] });
 	await chrome.scripting.executeScript({ target, files: ['content.js'] });
-	await setPage(tabId, true, true);
-};
+	if (!await setPage(tabId, true, true)) throw 0;
+});
 
 const activeTab = () => chrome.tabs.query({ active: true, currentWindow: true }).then(([t]) => t);
 
@@ -103,6 +114,8 @@ const refreshIcon = async () => {
 	return syncIcon(tabOn(tabActive, tab.id));
 };
 
+const deactivate = (id) => setTabOn(id, false).then(() => syncIcon(false));
+
 const onToggle = async () => {
 	const tab = await activeTab();
 	if (!tab?.id || !injectable(tab.url)) return;
@@ -110,11 +123,10 @@ const onToggle = async () => {
 	const next = !tabOn(tabActive, tab.id);
 	await setTabOn(tab.id, next);
 	await syncIcon(next);
-	if (next && !tabOn(injected, tab.id)) {
-		await injectTab(tab.id);
-		return markInjected(tab.id);
-	}
-	await setPage(tab.id, next, true);
+	const first = next && !tabOn(injected, tab.id);
+	if (first && await injectTab(tab.id)) return markInjected(tab.id);
+	if (first) return deactivate(tab.id);
+	return setPage(tab.id, next, true);
 };
 
 chrome.action.setBadgeText({ text: '' });

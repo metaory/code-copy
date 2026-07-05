@@ -2,7 +2,7 @@
   "name": "Code Copy",
   "short_name": "codecopy",
   "description": "Click code blocks to copy. Hold Alt and click any element to copy its text.",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "manifest_version": 3,
   "permissions": ["storage", "scripting", "activeTab", "tabs"],
   "background": { "service_worker": "worker.js" },
@@ -16,8 +16,8 @@
     }
   },
   "commands": {
-    "_execute_action": {
-      "suggested_key": { "default": "Alt+C" },
+    "toggle": {
+      "suggested_key": { "default": "Alt+C", "mac": "Alt+C" },
       "description": "Toggle Code Copy"
     }
   },
